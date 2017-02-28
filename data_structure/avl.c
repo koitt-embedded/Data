@@ -146,6 +146,58 @@ void print_tree(avl_tree *root)
 	}
 }
 
+avl_tree *chg_node(avl_tree *root)
+{
+	avl_tree *tmp;
+	tmp = root;
+	if(!root->r)
+		root = root->l;
+	else if(!root->l)
+		root = root->r;
+	free(tmp);
+	return root;
+}
+
+avl_tree *min_node(avl_tree *root, int *data)
+{
+	if(root->l)
+		root->l = min_node(root->l, data);
+	else
+	{
+		*data = root->data;
+		root = chg_node(root);
+	}
+
+	return root;
+}
+
+void del_avl(avl_tree **root, int data)
+{
+	int abs;
+	if(!(*root))
+	{
+		printf("Not Found\n");
+		return;
+	}
+	else if((*root)->data > data)
+		del_avl(&(*root)->l, data);
+	else if((*root)->data < data)
+		del_avl(&(*root)->r, data);
+	else if((*root)->l && (*root)->r)
+		(*root)->r = min_node((*root)->r, &(*root)->data);
+	else
+	{
+		*root = chg_node(*root);
+		return;
+	}
+
+	(*root)->lev = lev_modify(*root);
+	abs = lev_chk(*root);
+	abs = (abs > 0) ? abs : -abs;
+	if(abs > 1)
+		*root = rotation(*root, rot_chk(*root, data));
+}
+
 int main(void)
 {
 	int i;
@@ -157,6 +209,13 @@ int main(void)
 		avl_ins(&root, data[i]);
 
 	printf("after insertion\n");
+	print_tree(root);
+	printf("\n");
+
+	del_avl(&root, 16);
+	del_avl(&root, 5);
+	del_avl(&root, 8);
+
 	print_tree(root);
 
 	return 0;
