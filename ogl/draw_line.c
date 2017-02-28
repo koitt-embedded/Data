@@ -2,7 +2,6 @@
 
 void display(void)
 {
-	glPointSize(5.0f);      // 정점의 size 조절
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBegin(GL_LINE_STRIP);     // mode 선택
 	glVertex2f(-0.5f, 0.5f);
@@ -17,7 +16,6 @@ void display(void)
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
-
 
 	glutInitDisplayMode(GLUT_RGBA);
 	glutInitWindowSize(200, 200);
