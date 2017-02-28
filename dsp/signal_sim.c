@@ -1,67 +1,18 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <math.h>
 
 #include <GL/glut.h>
 
-#define SLICE	36
+#define SLICE	360
+
+void draw_omega_sin(void);
 
 float common_angles[5] = {15.0, 30.0, 45.0, 60.0, 75.0};
 float freq_table[5] = {1000.0, 2400.0, 5000.0, 24000.0, 77000.0};
 
-float rotate = 0.0;
-float start = 0.0;
-
-void draw_sinewave(void)
-{
-	float radius = 3.0;
-	float x2 = 0, y2, cx, cy, fx, fy;
-	float cos_y, cache_cos_y;
-	int cache = 0;
-	start += 1.0;
-
-	if(start > 360)
-		start = 0;
-
-	glBegin(GL_LINES);
-	float angle = 0;
-	for(angle = start; ; angle += 1.0)
-	{
-		if(angle > 1020)
-		{
-			break;
-			angle = 0.0;
-		}
-
-		float rad_angle = angle * (M_PI / 180.0);
-		x2 += 0.1;
-		y2 = radius * sin((double)rad_angle);
-		cos_y = radius * sin((double)-rad_angle);
-
-		if(cache)
-		{
-			glVertex2f(cx, cy);
-			glVertex2f(x2, y2);
-
-			//glVertex2f(cx, cache_cos_y);
-			//glVertex2f(x2, cos_y);
-		}
-#if 0
-		else
-		{
-			fx = x2;
-			fy = y2;
-		}
-#endif
-
-		cache = 1;
-		cx = x2;
-		cy = y2;
-		cache_cos_y = cos_y;
-	}
-	glEnd();
-}
+float theta = 0.0;
 
 void display(void)
 {
@@ -72,7 +23,7 @@ void display(void)
 	glTranslatef(-40, 0, -30);
 	glColor3f(1, 0, 0);
 
-	draw_sinewave();
+	draw_omega_sin();
 	glutSwapBuffers();
 }
 
@@ -138,31 +89,106 @@ float get_step(float slice, float period)
 void cos_sim(float amplitude, float ang_vel, float period)
 {
 	int cnt = 0;
-	float step, time = 0.0;
+	float step, t = 0.0;
 
-	time = step = get_step(SLICE, period);
+	t = step = get_step(SLICE, period);
 
 	while(cnt++ < 36)
 	{
 		printf("%.1fcos(%f * %.8f) = %f\n", amplitude, ang_vel,
-			time, amplitude * cos(ang_vel * time));
-		time += step;
+			t, amplitude * cos(ang_vel * t));
+		t += step;
 	}
 }
 
 void sin_sim(float amplitude, float ang_vel, float period)
 {
 	int cnt = 0;
-	float step, time = 0.0;
+	float step, t = 0.0;
 
-	time = step = get_step(SLICE, period);
+	t = step = get_step(SLICE, period);
 
 	while(cnt++ < 36)
 	{
 		printf("%.1fsin(%f * %.8f) = %f\n", amplitude, ang_vel,
-			time, amplitude * sin(ang_vel * time));
-		time += step;
+			t, amplitude * sin(ang_vel * t));
+		t += step;
 	}
+}
+
+void draw_omega_sin(void)
+{
+	float amp, angle, period, freq, rad, omega, t, step = 0.0;
+	float radius = 3.0;
+	float x = 0, x2 = 0, y2, cx, cy;
+	float tmp;
+	int cache = 0;
+
+	srand(time(NULL));
+
+#if 0
+	set_rand_amplitude(&amp);
+	set_angle_with_common_angles(&angle);
+	angle2radian(&angle, &rad);
+	set_rand_frequency(&freq);
+	calc_period(&freq, &period);
+	calc_angular_velocity(&freq, &omega);
+#endif
+
+#if 1
+	amp = 3;
+	angle = 45.0;
+	freq = 100.0;
+	
+	angle2radian(&angle, &rad);
+	calc_period(&freq, &period);
+	calc_angular_velocity(&freq, &omega);
+#endif
+
+#if 0
+	printf("amplitude = %f\n", amp);
+	printf("angle = %f degree\n", angle);
+	printf("radian = %f\n", rad);
+	printf("frequency = %f\n", freq);
+	printf("period = %f\n", period);
+	printf("angular_velocity = %f\n", omega);
+#endif
+
+	t = step = get_step(SLICE, period);
+
+	//printf("t = %f\n", t);
+#if 1
+	if(t > period)
+		t = 0.0;
+#endif
+
+	glBegin(GL_LINES);
+	for(; ; t += step)
+	{
+		if(t > 3 * period)
+		{
+			break;
+			t = 0.0;
+		}
+
+		//float rad_angle = angle * (M_PI / 180.0);
+		//x2 += x;		// time += step;
+		//x2 += 0.1;
+		y2 = amp * sin(omega * t);
+		//y2 = radius * sin((double)rad_angle);
+
+		if(cache)
+		{
+			glVertex2f(cx * 4000, cy);
+			glVertex2f(t * 4000, y2);
+		}
+
+		cache = 1;
+		cx = t;
+		cy = y2;
+		//printf("t = %f, y2 = %f\n", t * 4000, y2);
+	}
+	glEnd();
 }
 
 int main(int argc, char **argv)
@@ -176,6 +202,7 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("Digital Signal Processing");
 
+#if 0
 	srand(time(NULL));
 
 	set_rand_amplitude(&amplitude);
@@ -194,6 +221,7 @@ int main(int argc, char **argv)
 
 	cos_sim(amplitude, angular_velocity, period);
 	sin_sim(amplitude, angular_velocity, period);
+#endif
 
 	glutDisplayFunc(display);
 	glutIdleFunc(display);
