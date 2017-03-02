@@ -10,10 +10,20 @@
 void make_rand_content(int fd)
 {
 	int i, j, len, cnt, col = 10000;
-	char buf[100000] = "data\n\0";
-	int cur_len = 0, tmp = strlen(buf);
+	char buf[100000];
+	int cur_len = 0;
 
-	memset(&buf[tmp], 0, sizeof(buf - tmp));
+	memset(buf, 0, sizeof(buf));
+	buf[0] = '\"';
+	buf[1] = 'd';
+	buf[2] = 'a';
+	buf[3] = 't';
+	buf[4] = 'a';
+	buf[5] = '\"';
+	buf[6] = '\n';
+
+	cur_len = strlen(buf);
+	printf("cur_len = %d\n", cur_len);
 
 	for(i = 0; i < col; i++)
 	{
