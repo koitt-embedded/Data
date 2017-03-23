@@ -14,6 +14,6 @@ float gaussian_probability_density_function(float x, float m, float s)
 int main(void)
 {
 	// sample data, mean = 0, variation = 1
-	gaussian_probability_density_function(10, 0, 1);
+	gaussian_probability_density_function(1, 0, 1);
 	return 0;
 }
