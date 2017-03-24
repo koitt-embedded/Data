@@ -10,16 +10,6 @@ int input_sig[5] = {-1, 0, 1, 2};
 int samp[5] = {-1, 0, 1, 2};
 int impulse[4] = {3, 2, 1};
 
-GLuint base;
-
-GLvoid glPrint(const char *text)
-{
-	glPushAttrib(GL_LIST_BIT); //<1>
-	glListBase(base - 32); //<2>
-	glCallLists(strlen(text), GL_UNSIGNED_BYTE, text); //<3>
-	glPopAttrib(); //<4>
-}
-
 void convolution(void)
 {
 	int i, j, in_len, pulse_len, tot_len;
@@ -47,20 +37,14 @@ void convolution(void)
 	for(i = 0; i < 6; i++)
 		printf("res[%d] = %d\n", i, res[i]);
 
-        glColor3f(0.0, 1.0, 1.0);
+        glColor3f(1.0, 0.0, 1.0);
 
 	for(i = 0; i < 6; i++)
 	{
-		char str[3] = {0};
 		glBegin(GL_LINE_STRIP);
 		glVertex2f((-1 + i) * 10, res[i] * 10);
 		glVertex2f((-1 + i) * 10, 0);
 		glEnd();
-
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glRasterPos2f(-1.4f, 0.0f);
-		sprintf(str, "%d", res[i]);
-		glPrint(str);
 	}
 }
 
