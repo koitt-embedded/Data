@@ -200,7 +200,7 @@ void draw_omega_sin(void)
 	glBegin(GL_LINES);
 	for(; ; t += step)
 	{
-		if(t > 12 * period)
+		if(t > 26 * period)
 		{
 			break;
 			t = 0.0;
@@ -214,8 +214,8 @@ void draw_omega_sin(void)
 
 		if(cache)
 		{
-			glVertex2f(cx * 1000, cy);
-			glVertex2f(t * 1000, y2);
+			glVertex2f(cx * 500, cy);
+			glVertex2f(t * 500, y2);
 		}
 
 		cache = 1;
