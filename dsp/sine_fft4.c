@@ -199,23 +199,23 @@ void draw_spectrum(void)
 	//printf("OK");
 
 	glBegin(GL_LINE_STRIP);
-	glVertex2f(0, G[0] + H[0]);
-	glVertex2f(0, 0);
+	glVertex2f(cnt * 10, G[0] + H[0]);
+	glVertex2f(cnt++ * 10, 0);
 	glEnd();
 
 	glBegin(GL_LINE_STRIP);
-	glVertex2f(0, G[1] - H[1]);
-	glVertex2f(0, 0);
+	glVertex2f(cnt * 10, G[1] - H[1]);
+	glVertex2f(cnt++ * 10, 0);
 	glEnd();
 
 	glBegin(GL_LINE_STRIP);
-	glVertex2f(0, G[0] - H[0]);
-	glVertex2f(0, 0);
+	glVertex2f(cnt * 10, G[0] - H[0]);
+	glVertex2f(cnt++ * 10, 0);
 	glEnd();
 
 	glBegin(GL_LINE_STRIP);
-	glVertex2f(0, G[1] + H[1]);
-	glVertex2f(0, 0);
+	glVertex2f(cnt * 10, G[1] + H[1]);
+	glVertex2f(cnt++ * 10, 0);
 	glEnd();
 
 #if 0
