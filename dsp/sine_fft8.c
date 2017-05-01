@@ -6,12 +6,12 @@
 
 #include <GL/glut.h>
 
-#define SLICE	8
+#define SLICE		8
+#define HALF_SLICE	(SLICE >> 1)
 
 int glob = 4;
 int count = 0;
 
-#define SLICE           8
 #define TWID_FACTOR     (SLICE >> 1) + 1
 
 typedef struct complex
@@ -305,10 +305,10 @@ void draw_spectrum(void)
 				y[i].re += temp_re;
 				y[i].im += temp_im;
 
-				printf("y[%d].re = %lf\t", i, y[i].re);
-				printf("y[%d].im = %lf\n", i, y[i].im);
-				printf("y[%d].re = %lf\t", i+iy, y[i+iy].re);
-				printf("y[%d].im = %lf\n", i+iy, y[i+iy].im);
+				printf("y[%d].re = %lf\t", i, y[i].re / HALF_SLICE);
+				printf("y[%d].im = %lf\n", i, y[i].im / HALF_SLICE);
+				printf("y[%d].re = %lf\t", i+iy, y[i+iy].re / HALF_SLICE);
+				printf("y[%d].im = %lf\n", i+iy, y[i+iy].im / HALF_SLICE);
 
 				i += ix;
 			}
@@ -339,14 +339,14 @@ void draw_spectrum(void)
 		if(y[i].re == 0 && y[i].im == 0)
 			continue;
 
-		glVertex2f(i * 10, y[i].re);
+		glVertex2f(i * 10, y[i].re / HALF_SLICE);
 		glVertex2f(i * 10, 0);
 
 		glEnd();
 
 		glBegin(GL_LINE_STRIP);
 
-		glVertex2f(i * 10, y[i].im);
+		glVertex2f(i * 10, y[i].im / HALF_SLICE);
 		glVertex2f(i * 10, 0);
 
 		glEnd();
