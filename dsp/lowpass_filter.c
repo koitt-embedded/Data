@@ -30,7 +30,8 @@ typedef struct complex
 
 void draw_omega_sin(void);
 void draw_spectrum(void);
-void low_pass_filter(void);
+void low_pass_filter(double *);
+void spectrum_analysis(double *);
 
 float common_angles[5] = {15.0, 30.0, 45.0, 60.0, 75.0};
 float freq_table[5] = {1000.0, 2400.0, 5000.0, 24000.0, 77000.0};
@@ -39,6 +40,8 @@ float theta = 0.0;
 
 void display(void)
 {
+	double lpf_signal[SLICE] = {0};
+
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
@@ -61,7 +64,8 @@ void display(void)
 
 	//draw_omega_sin();
 	//draw_spectrum();
-	low_pass_filter();
+	low_pass_filter(lpf_signal);
+	spectrum_analysis(lpf_signal);
 	glutSwapBuffers();
 }
 
@@ -444,7 +448,7 @@ void draw_spectrum(void)
 	glob = 2;
 }
 
-void low_pass_filter(void)
+void low_pass_filter(double *lpf)
 {
 	int i;
 	double signal[SLICE] = {0};
@@ -468,10 +472,125 @@ void low_pass_filter(void)
 		fout[i] = (rc * fout[i - 1] + SAMPLE_PERIOD * signal[i]) / (rc + SAMPLE_PERIOD);
 		printf("fout[%d] = %lf\n", i, fout[i]);
 	}
+
+	memcpy(lpf, fout, sizeof(double) * SLICE);
 #if 0
 	for(i = 0; i < SLICE; i++)
 		fout[i] = signal[i + 1] + fc * (signal[i + 1] - signal[i]) / SAMPLE_PERIOD;
 #endif
+}
+
+void spectrum_analysis(double *lpf)
+{
+	double t = 0, period, freq = SLICE, step = 0.0;
+	double temp_re, temp_im, twid_re, twid_im;
+	double dv0[CALC_ORDER] = {0};
+	double dv1[CALC_ORDER] = {0};
+	double rf[CALC_ORDER] = {0};
+	double f[CALC_ORDER] = {0};
+
+	c y[SLICE] = {0};
+	int ix = 0, ju = 0, iy = 0, tst, iheight, istart, ihi, i, j;
+
+	if(t > period)
+		t = 0.0;
+
+	step = 2 * M_PI / SLICE;
+
+	for(i = 0; i < SLICE - 1; i++)
+	{
+		y[iy].re = lpf[ix];
+		y[iy].im = 0.0;
+
+		iy = SLICE;
+		tst = 1;
+		while(tst)
+		{
+			iy >>= 1;
+			ju ^= iy;
+			tst = ((ju & iy) == 0);
+		}
+		iy = ju;
+		ix++;
+	}
+	y[iy].re = lpf[ix];
+	y[iy].im = 0.0;
+
+	for (i = 0; i <= SLICE - 1; i += 2)
+	{
+                temp_re = y[i + 1].re;
+                temp_im = y[i + 1].im;
+                y[i + 1].re = y[i].re - y[i + 1].re;
+                y[i + 1].im = y[i].im - y[i + 1].im;
+                y[i].re += temp_re;
+                y[i].im += temp_im;
+	}
+
+	iy = 2;
+        ix = 4;
+        ju = QUAD_SLICE;
+        iheight = CALC_HEIGHT;
+        glob *= 2;
+
+        while (ju > 0)
+	{
+		for (i = 0; i < iheight; i += ix)
+		{
+                        temp_re = y[i + iy].re;
+                        temp_im = y[i + iy].im;
+                        y[i + iy].re = y[i].re - temp_re;
+                        y[i + iy].im = y[i].im - temp_im;
+                        y[i].re += temp_re;
+                        y[i].im += temp_im;
+		}
+		istart = 1;
+
+		for(j = ju; j < HALF_SLICE; j += ju)
+		{
+			twid_re = dv0[j];
+                        twid_im = dv1[j];
+                        i = istart;
+                        ihi = istart + iheight;
+                        while (i < ihi) {
+                                temp_re = twid_re * y[i + iy].re - twid_im * y[i + iy].im;
+                                temp_im = twid_re * y[i + iy].im + twid_im * y[i + iy].re;
+                                y[i + iy].re = y[i].re - temp_re;
+                                y[i + iy].im = y[i].im - temp_im;
+                                y[i].re += temp_re;
+                                y[i].im += temp_im;
+				i += ix;
+			}
+			istart++;
+		}
+		ju /= 2;
+		iy = ix;
+		ix <<= 1;
+		iheight -= iy;
+
+		if(ju > 0)
+                {
+                        printf("\nN-%d Butterfly 완료\nN-%d Butterfly 시작", glob, glob * 2);
+                        glob *= 2;
+                }
+                else
+                        printf("\nN-%d Butterfly 완료\n", glob * count);
+	}
+
+	find_frequency(y, rf, f);
+
+	for(i = 0; i < CALC_ORDER; i++)
+	{
+		glBegin(GL_LINE_STRIP);
+                glVertex2f(-i*0.2, rf[i] * 20);
+                glVertex2f(-i*0.2, 0);
+                glEnd();
+
+                glBegin(GL_LINE_STRIP);
+                glVertex2f(i*0.2, rf[i] * 20);
+                glVertex2f(i*0.2, 0);
+                glEnd();
+	}
+	glob = 2;
 }
 
 int main(int argc, char **argv)
