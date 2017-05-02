@@ -30,6 +30,7 @@ typedef struct complex
 
 void draw_omega_sin(void);
 void draw_spectrum(void);
+void low_pass_filter(void);
 
 float common_angles[5] = {15.0, 30.0, 45.0, 60.0, 75.0};
 float freq_table[5] = {1000.0, 2400.0, 5000.0, 24000.0, 77000.0};
@@ -59,7 +60,8 @@ void display(void)
         glEnd();
 
 	//draw_omega_sin();
-	draw_spectrum();
+	//draw_spectrum();
+	low_pass_filter();
 	glutSwapBuffers();
 }
 
@@ -440,21 +442,36 @@ void draw_spectrum(void)
 		glEnd();
 	}
 	glob = 2;
-
-	//lowpass_filter(rf, fout);
-	lowpass_filter(x, fout);
-
-	for(i = 0; i < SLICE; i++)
-		printf("fout[%d] = %lf\n", i, fout[i]);
 }
 
-void lowpass_filter(double *signal, double *fout)
+void low_pass_filter(void)
 {
 	int i;
-	double fc = 1 / 800000000.0;
+	double signal[SLICE] = {0};
+	double fout[SLICE] = {0};
+	double fc = 800000000.0;
+	double rc = 1.0 / (2 * M_PI * fc);
+	double t = 0.0;
+	double step = CALC_5G_2PI / SLICE;
 
+	printf("Original Signal\n");
+	for(i = 0; i < SLICE; i++, t += step)
+	{
+		signal[i] = 10 * sin(CALC_5G_2PI * t) + 5 * cos(CALC_NOISE_2PI * t);
+		printf("signal[%d] = %lf\n", i, signal[i]);
+	}
+
+	printf("Filter\n");
+	t = 0.0;
+	for(i = 0; i < SLICE; i++)
+	{
+		fout[i] = (rc * fout[i - 1] + SAMPLE_PERIOD * signal[i]) / (rc + SAMPLE_PERIOD);
+		printf("fout[%d] = %lf\n", i, fout[i]);
+	}
+#if 0
 	for(i = 0; i < SLICE; i++)
 		fout[i] = signal[i + 1] + fc * (signal[i + 1] - signal[i]) / SAMPLE_PERIOD;
+#endif
 }
 
 int main(int argc, char **argv)
