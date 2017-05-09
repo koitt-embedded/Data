@@ -451,29 +451,25 @@ void draw_spectrum(void)
 void low_pass_filter(double *lpf)
 {
 	int i;
+	double t = 0.0;
 	double signal[SLICE] = {0};
-	double fout[SLICE] = {0};
 	double fc = 800000000.0;
 	double rc = 1.0 / (2 * M_PI * fc);
-	double t = 0.0;
-	double step = CALC_5G_2PI / SLICE;
 
 	printf("Original Signal\n");
-	for(i = 0; i < SLICE; i++, t += step)
+	for(i = 0; i < SLICE; t += SAMPLE_PERIOD, i++)
 	{
-		signal[i] = 10 * sin(CALC_5G_2PI * t) + 5 * cos(CALC_NOISE_2PI * t);
+                signal[i] = 10 * sin(CALC_5G_2PI * t) + 5 * cos(CALC_NOISE_2PI * t);
 		printf("signal[%d] = %lf\n", i, signal[i]);
 	}
 
-	printf("Filter\n");
-	t = 0.0;
-	for(i = 0; i < SLICE; i++)
+	printf("RC Low Pass Filter\n");
+	for(i = 1; i < SLICE; i++)
 	{
-		fout[i] = (rc * fout[i - 1] + SAMPLE_PERIOD * signal[i]) / (rc + SAMPLE_PERIOD);
-		printf("fout[%d] = %lf\n", i, fout[i]);
+		lpf[i] = (rc * lpf[i - 1] + SAMPLE_PERIOD * signal[i]) / (rc + SAMPLE_PERIOD);
+		printf("lpf[%d] = %lf\n", i, lpf[i]);
 	}
 
-	memcpy(lpf, fout, sizeof(double) * SLICE);
 #if 0
 	for(i = 0; i < SLICE; i++)
 		fout[i] = signal[i + 1] + fc * (signal[i + 1] - signal[i]) / SAMPLE_PERIOD;
@@ -484,6 +480,7 @@ void spectrum_analysis(double *lpf)
 {
 	double t = 0, period, freq = SLICE, step = 0.0;
 	double temp_re, temp_im, twid_re, twid_im;
+	double x = 0, x2 = 0, y2, cx, cy;
 	double dv0[CALC_ORDER] = {0};
 	double dv1[CALC_ORDER] = {0};
 	double rf[CALC_ORDER] = {0};
@@ -578,6 +575,7 @@ void spectrum_analysis(double *lpf)
 
 	find_frequency(y, rf, f);
 
+	t = 0.0;
 	for(i = 0; i < CALC_ORDER; i++)
 	{
 		glBegin(GL_LINE_STRIP);
@@ -589,6 +587,17 @@ void spectrum_analysis(double *lpf)
                 glVertex2f(i*0.2, rf[i] * 20);
                 glVertex2f(i*0.2, 0);
                 glEnd();
+
+#if 0
+		glBegin(GL_LINES);
+		glVertex2f(cx, cy);
+		glVertex2f(t * 20, lpf[i] * 5);
+		glEnd();
+
+		cx = t;
+		cy = lpf[i];
+		t += step;
+#endif
 	}
 	glob = 2;
 }
