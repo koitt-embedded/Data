@@ -494,6 +494,13 @@ void spectrum_analysis(double *lpf)
 
 	step = 2 * M_PI / SLICE;
 
+	for(i = 0; i < CALC_ORDER; i++)
+	{
+		dv0[i] = cos(t);
+		dv1[i] = -sin(t);
+		t += step;
+	}
+
 	for(i = 0; i < SLICE - 1; i++)
 	{
 		y[iy].re = lpf[ix];
